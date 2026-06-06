@@ -17,3 +17,6 @@ def add_task(title: str) -> Task:
 
 def mark_done(task: Task) -> Task:
     return replace(task, done=True)
+
+def delete_task(tasks: Task, task_id: str) -> list[Task]:
+    return [task for task in tasks if task.id != task_id]

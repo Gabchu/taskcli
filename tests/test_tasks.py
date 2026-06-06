@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 from taskcli.storage import load_tasks, save_tasks
-from taskcli.tasks import add_task, mark_done
+from taskcli.tasks import add_task, delete_task, mark_done
 
 
 def test_add_task_has_given_title():
@@ -48,3 +48,12 @@ def test_mark_done_flips_the_flag():
     updated = mark_done(task)
 
     assert updated.done is True
+
+def test_delete_task_removes_matching_id():
+    a = add_task("Task A")
+    b = add_task("Task B")
+    tasks = [a, b]
+
+    result = delete_task(tasks, a.id)
+
+    assert result == [b]

@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 
 from taskcli.storage import load_tasks, save_tasks
-from taskcli.tasks import add_task, mark_done
+from taskcli.tasks import add_task, delete_task, mark_done
 
 DEFAULT_DB = Path.home() / ".taskcli" / ".tasks.json"
 
@@ -19,6 +19,8 @@ def main() -> None:
         cmd_list(args.db)
     elif args.command == "done":
         cmd_done(args.id_prefix, args.db)
+    elif args.command == "delete":
+        cmd_delete(args.id_prefix, args.db)
     else:
         parser.print_help()
 
@@ -44,6 +46,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     done_p = subparsers.add_parser("done", help="Mark a task as done")
     done_p.add_argument("id_prefix", help="Task id (or any unique prefix)")
+
+    delete_p = subparsers.add_parser("delete", help="Delete a task")
+    delete_p.add_argument("id_prefix", help="Task id (or any unique prefix)")
 
     return parser
 
@@ -80,3 +85,18 @@ def cmd_done(id_prefix: str, db: Path) -> None:
     updated = [mark_done(t) if t is target else t for t in tasks]
     save_tasks(updated, db)
     print(f"Marked done: {target.title}")
+
+def cmd_delete(id_prefix: str, db: Path) -> None:
+    tasks = load_tasks(db)
+    matches = [t for t in tasks if t.id.startswith(id_prefix)]
+    if not matches:
+        print(f"No task found with id starting with {id_prefix!r}")
+        return
+    if len(matches) > 1:
+        print(f"Ambiguous: {len(matches)} tasks match {id_prefix!r}. Be more specific.")
+        return
+    
+    target = matches[0]
+    updated = delete_task(tasks, target.id)
+    save_tasks(updated, db)
+    print(f"Deleted {target.title}")
